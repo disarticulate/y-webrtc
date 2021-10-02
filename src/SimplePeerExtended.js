@@ -1,4 +1,3 @@
-import * as Y from 'yjs' // eslint-disable-line
 import Peer from 'simple-peer/simplepeer.min.js'
 const { Int64BE } = require('./int64-buffer.min.js')
 
@@ -116,6 +115,7 @@ class SimplePeerExtended extends Peer {
         super.send(message)
         message = this.webRTCMessageQueue.shift()
       } catch (error) {
+        super.destroy()
         console.warn(error)
       }
     }

@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "lib0": "^0.2.34",
-    "simple-peer": "^9.9.3",
+    "simple-peer": "^9.11.0",
     "y-protocols": "^1.0.4"
   },
   "devDependencies": {
