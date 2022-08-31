@@ -1,4 +1,4 @@
-import Peer from 'simple-peer/simplepeer.min.js'
+const Peer = require('simple-peer/simplepeer.min.js')
 const { Int64BE } = require('./int64-buffer.min.js')
 
 export const CHUNK_SIZE = (1024 * 16) - 512 // 16KB - data header
