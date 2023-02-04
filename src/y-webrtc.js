@@ -358,17 +358,24 @@ export class Room {
       encoding.writeVarUint8Array(encoderAwareness, awarenessProtocol.encodeAwarenessUpdate(this.awareness, changedClients))
       broadcastRoomMessage(this, encoding.toUint8Array(encoderAwareness))
     }
-    this.doc.on('update', this._docUpdateHandler)
-    this.awareness.on('update', this._awarenessUpdateHandler)
-    window.addEventListener('beforeunload', () => {
+
+    this._beforeUnloadHandler = () => {
       awarenessProtocol.removeAwarenessStates(this.awareness, [doc.clientID], 'window unload')
       rooms.forEach(room => {
         room.disconnect()
       })
-    })
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', this._beforeUnloadHandler)
+    } else if (typeof process !== 'undefined') {
+      process.on('exit', this._beforeUnloadHandler)
+    }
   }
 
   connect () {
+    this.doc.on('update', this._docUpdateHandler)
+    this.awareness.on('update', this._awarenessUpdateHandler)
     // signal through all available signaling connections
     announceSignalingInfo(this)
     const roomName = this.name
@@ -421,6 +428,11 @@ export class Room {
 
   destroy () {
     this.disconnect()
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('beforeunload', this._beforeUnloadHandler)
+    } else if (typeof process !== 'undefined') {
+      process.off('exit', this._beforeUnloadHandler)
+    }
   }
 }
 
@@ -486,13 +498,15 @@ export class SignalingConn extends ws.WebsocketClient {
               // ignore messages that are not addressed to this conn, or from clients that are connected via broadcastchannel
               return
             }
-            const emitPeerChange = webrtcConns.has(data.from) ? () => {} : () =>
-              room.provider.emit('peers', [{
-                removed: [],
-                added: [data.from],
-                webrtcPeers: Array.from(room.webrtcConns.keys()),
-                bcPeers: Array.from(room.bcConns)
-              }])
+            const emitPeerChange = webrtcConns.has(data.from)
+              ? () => {}
+              : () =>
+                room.provider.emit('peers', [{
+                  removed: [],
+                  added: [data.from],
+                  webrtcPeers: Array.from(room.webrtcConns.keys()),
+                  bcPeers: Array.from(room.bcConns)
+                }])
             switch (data.type) {
               case 'announce':
                 if (webrtcConns.size < room.provider.maxConns) {
@@ -523,19 +537,23 @@ export class SignalingConn extends ws.WebsocketClient {
 }
 
 /**
+ * @typedef {Object} ProviderOptions
+ * @property {Array<string>} [signaling]
+ * @property {string} [password]
+ * @property {awarenessProtocol.Awareness} [awareness]
+ * @property {number} [maxConns]
+ * @property {boolean} [filterBcConns]
+ * @property {any} [peerOpts]
+ */
+
+/**
  * @extends Observable<string>
  */
 export class WebrtcProvider extends Observable {
   /**
    * @param {string} roomName
    * @param {Y.Doc} doc
-   * @param {Object} [opts]
-   * @param {Array<string>} [opts.signaling]
-   * @param {string?} [opts.password]
-   * @param {awarenessProtocol.Awareness} [opts.awareness]
-   * @param {number} [opts.maxConns]
-   * @param {boolean} [opts.filterBcConns]
-   * @param {any} [opts.peerOpts]
+   * @param {ProviderOptions?} opts
    */
   constructor (
     roomName,
