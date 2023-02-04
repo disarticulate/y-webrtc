@@ -1,30 +1,30 @@
 Arguments: 
-  /usr/bin/node /usr/share/yarn/bin/yarn.js upgrade simple-peer
+  /usr/bin/node /usr/share/yarn/bin/yarn.js upgrade lib0
 
 PATH: 
-  /srv/home/scripts:/srv/zeta/cy/.npm-packages/bin:/home/cy/miniconda3/bin:/srv/dev-disk-by-uuid-9ff8fe21-47ef-4c1d-8fb6-bfe7d31a33c1/cy/.vscode-server/bin/7f6ab5485bbc008386c4386d08766667e155244e/bin:/srv/home/scripts:/srv/zeta/cy/.npm-packages/bin:/home/cy/miniconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/home/cy/.local/bin:/home/cy/.local/bin
+  ~/.local/bin:/srv/home/scripts:/home/cy/miniconda3/bin:/srv/dev-disk-by-uuid-9ff8fe21-47ef-4c1d-8fb6-bfe7d31a33c1/cy/.vscode-server/bin/e2816fe719a4026ffa1ee0189dc89bdfdbafb164/bin/remote-cli:~/.local/bin:/srv/home/scripts:/home/cy/miniconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/home/cy/.local/bin:/srv/dev-disk-by-uuid-9ff8fe21-47ef-4c1d-8fb6-bfe7d31a33c1/cy/.yarn/bin:/srv/dev-disk-by-uuid-9ff8fe21-47ef-4c1d-8fb6-bfe7d31a33c1/cy/.config/yarn/global/node_modules/.bin:/home/cy/.local/bin:/srv/dev-disk-by-uuid-9ff8fe21-47ef-4c1d-8fb6-bfe7d31a33c1/cy/.yarn/bin:/srv/dev-disk-by-uuid-9ff8fe21-47ef-4c1d-8fb6-bfe7d31a33c1/cy/.config/yarn/global/node_modules/.bin
 
 Yarn version: 
-  1.22.5
+  1.22.19
 
 Node version: 
-  16.9.1
+  18.6.0
 
 Platform: 
   linux x64
 
 Trace: 
-  Error: https://lily.thenovel.org/npm/repository/npm/is-reference/-/is-reference-1.2.1.tgz: Request failed "502 Bad Gateway"
+  Error: https://lily.thenovel.org/npm/repository/npm/y-protocols/-/y-protocols-1.0.4.tgz: Request failed "502 Bad Gateway"
       at ResponseError.ExtendableBuiltin (/usr/share/yarn/lib/cli.js:696:66)
       at new ResponseError (/usr/share/yarn/lib/cli.js:802:124)
-      at Request.<anonymous> (/usr/share/yarn/lib/cli.js:67058:16)
-      at Request.emit (node:events:394:28)
-      at Request.module.exports.Request.onRequestResponse (/usr/share/yarn/lib/cli.js:141626:10)
-      at ClientRequest.emit (node:events:394:28)
-      at HTTPParser.parserOnIncomingClient (node:_http_client:621:27)
-      at HTTPParser.parserOnHeadersComplete (node:_http_common:128:17)
-      at TLSSocket.socketOnData (node:_http_client:487:22)
-      at TLSSocket.emit (node:events:394:28)
+      at Request.<anonymous> (/usr/share/yarn/lib/cli.js:66215:16)
+      at Request.emit (node:events:513:28)
+      at module.exports.Request.onRequestResponse (/usr/share/yarn/lib/cli.js:141767:10)
+      at ClientRequest.emit (node:events:513:28)
+      at HTTPParser.parserOnIncomingClient (node:_http_client:674:27)
+      at HTTPParser.parserOnHeadersComplete (node:_http_common:117:17)
+      at TLSSocket.socketOnData (node:_http_client:521:22)
+      at TLSSocket.emit (node:events:513:28)
 
 npm manifest: 
   {
@@ -80,7 +80,7 @@ npm manifest:
     },
     "dependencies": {
       "lib0": "^0.2.34",
-      "simple-peer": "^9.9.3",
+      "simple-peer": "^9.11.0",
       "y-protocols": "^1.0.4"
     },
     "devDependencies": {
@@ -94,10 +94,10 @@ npm manifest:
       "rollup-plugin-terser": "^5.3.1",
       "standard": "^14.3.4",
       "typescript": "^3.9.7",
-      "yjs": "^13.5.2"
+      "yjs": "^13.5.41"
     },
     "peerDependenies": {
-      "yjs": "^13.5.2"
+      "yjs": "^13.5.41"
     },
     "optionalDependencies": {
       "ws": "^7.2.0"

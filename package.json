@@ -65,10 +65,10 @@
     "rollup-plugin-terser": "^5.3.1",
     "standard": "^14.3.4",
     "typescript": "^3.9.7",
-    "yjs": "^13.5.2"
+    "yjs": "^13.5.41"
   },
   "peerDependenies": {
-    "yjs": "^13.5.2"
+    "yjs": "^13.5.41"
   },
   "optionalDependencies": {
     "ws": "^7.2.0"
