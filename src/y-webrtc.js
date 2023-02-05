@@ -291,14 +291,26 @@ export class WebrtcConn {
     })
     this.peer.on("data", async (data) => {
       //simulate READ
-      const valid = await room.validateUpdate(this, data)
-      if (valid) {
-        const answer = readPeerMessage(this, data)
-        if (answer !== null) {
-          sendWebrtcConn(this, answer)
+      try {
+        const valid = await Promise.resolve(room.validateUpdate(this, data))
+        console.log("valid", { valid, webrtcConn: this, data })
+        if (valid) {
+          const answer = readPeerMessage(this, data)
+          if (answer !== null) {
+            sendWebrtcConn(this, answer)
+          }
+          return
         }
-      } else {
-        console.warn("!InvalidDataFromUpdate", { peer: this.peer, valid })
+        return console.warn("!InvalidDataFromUpdate", {
+          peer: this.peer,
+          valid,
+        })
+      } catch (e) {
+        return console.warn("!ValidationFailed", {
+          peer: this.peer,
+          webrtcConn: this,
+          err: e,
+        })
       }
     })
   }
