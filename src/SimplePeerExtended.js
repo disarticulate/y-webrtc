@@ -1,7 +1,7 @@
-const Peer = require('simple-peer/simplepeer.min.js')
-const { Int64BE } = require('./int64-buffer.min.js')
+const Peer = require("simple-peer/simplepeer.min.js")
+const { Int64BE } = require("./int64-buffer.min.js")
 
-export const CHUNK_SIZE = (1024 * 16) - 512 // 16KB - data header
+export const CHUNK_SIZE = 1024 * 16 - 512 // 16KB - data header
 export const TX_SEND_TTL = 1000 * 30 // 30 seconds
 export const MAX_BUFFERED_AMOUNT = 64 * 1024 // simple peer value
 
@@ -27,18 +27,18 @@ class SimplePeerExtended extends Peer {
     this.webRTCMessageQueue = []
     this.webRTCPaused = false
   }
-  encodePacket ({ chunk, txOrd, index, length, totalSize, chunkSize }) {
+  encodePacket({ chunk, txOrd, index, length, totalSize, chunkSize }) {
     let encoded = concatenate(Uint8Array, [
       new Uint8Array(new Int64BE(txOrd).toArrayBuffer()), // 8 bytes
       new Uint8Array(new Int64BE(index).toArrayBuffer()), // 8 bytes
       new Uint8Array(new Int64BE(length).toArrayBuffer()), // 8 bytes
       new Uint8Array(new Int64BE(totalSize).toArrayBuffer()), // 8 bytes
       new Uint8Array(new Int64BE(chunkSize).toArrayBuffer()), // 8 bytes
-      chunk // CHUNK_SIZE
+      chunk, // CHUNK_SIZE
     ])
     return encoded
   }
-  decodePacket (array) {
+  decodePacket(array) {
     return {
       txOrd: new Int64BE(array.slice(0, 8)).toNumber(),
       index: new Int64BE(array.slice(8, 16)).toNumber(),
@@ -48,7 +48,7 @@ class SimplePeerExtended extends Peer {
       chunk: array.slice(40),
     }
   }
-  packetArray (array, size) {
+  packetArray(array, size) {
     const txOrd = this._txOrdinal
     this._txOrdinal++
     const chunkedArr = []
@@ -65,57 +65,70 @@ class SimplePeerExtended extends Peer {
         index,
         totalSize,
         length: chunkedArr.length,
-        chunkSize: chunk.byteLength
+        chunkSize: chunk.byteLength,
       })
     })
   }
-  _onChannelMessage (event) {
+  _onChannelMessage(event) {
     let { data } = event
     let packet = this.decodePacket(data)
-    if (packet.chunk instanceof ArrayBuffer) packet.chunk = new Uint8Array(packet.chunk)
+    if (packet.chunk instanceof ArrayBuffer)
+      packet.chunk = new Uint8Array(packet.chunk)
     if (packet.chunkSize === packet.totalSize) {
       this.push(packet.chunk)
     } else {
       let data = this._rxPackets.filter((p) => p.txOrd === packet.txOrd)
       data.push(packet)
-      let indices = data.map(p => p.index)
+      let indices = data.map((p) => p.index)
       if (new Set(indices).size === packet.length) {
         data.sort(this.sortPacketArray)
-        let chunks = concatenate(Uint8Array, data.map(p => p.chunk))
+        let chunks = concatenate(
+          Uint8Array,
+          data.map((p) => p.chunk)
+        )
         this.push(chunks)
-        setTimeout(() => { this._rxPackets = this._rxPackets.filter((p) => p.txOrd !== packet.txOrd) }, TX_SEND_TTL)
+        setTimeout(() => {
+          this._rxPackets = this._rxPackets.filter(
+            (p) => p.txOrd !== packet.txOrd
+          )
+        }, TX_SEND_TTL)
       } else {
         this._rxPackets.push(packet)
       }
     }
   }
-  sortPacketArray (a, b) { return a.index > b.index ? 1 : -1 }
-  send (chunk) {
+  sortPacketArray(a, b) {
+    return a.index > b.index ? 1 : -1
+  }
+  send(chunk) {
     if (chunk instanceof ArrayBuffer) chunk = new Uint8Array(chunk)
     let chunks = this.packetArray(chunk, CHUNK_SIZE)
     this.webRTCMessageQueue = this.webRTCMessageQueue.concat(chunks)
     if (this.webRTCPaused) return
     this.sendMessageQueued()
   }
-  sendMessageQueued () {
+  sendMessageQueued() {
     this.webRTCPaused = false
     let message = this.webRTCMessageQueue.shift()
     while (message) {
-      if (this._channel.bufferedAmount && this._channel.bufferedAmount > MAX_BUFFERED_AMOUNT) {
+      if (
+        this._channel.bufferedAmount &&
+        this._channel.bufferedAmount > MAX_BUFFERED_AMOUNT
+      ) {
         this.webRTCPaused = true
         this.webRTCMessageQueue.unshift(message)
         const listener = () => {
-          this._channel.removeEventListener('bufferedamountlow', listener)
+          this._channel.removeEventListener("bufferedamountlow", listener)
           this.sendMessageQueued()
         }
-        this._channel.addEventListener('bufferedamountlow', listener)
+        this._channel.addEventListener("bufferedamountlow", listener)
         return
       }
       try {
         super.send(message)
         message = this.webRTCMessageQueue.shift()
       } catch (error) {
-        console.warn(error, super)
+        console.warn({ error })
       }
     }
   }
