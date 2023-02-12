@@ -54,6 +54,22 @@ const checkIsSynced = (room) => {
   }
 }
 
+const validMessage = async (room, data) => {
+  const decoder = decoding.createDecoder(data)
+  const messageType = decoding.readVarUint(decoder)
+  if (messageType === messageSync) {
+    try {
+      const valid = await Promise.resolve(room.validateUpdate(data))
+      console.log("validMessage", { valid, room, data })
+      return valid
+    } catch (e) {
+      console.warn("!InvalidDataFromUpdate", { room, data })
+      return false
+    }
+  }
+  return true
+}
+
 /**
  * @param {Room} room
  * @param {Uint8Array} buf
@@ -290,28 +306,22 @@ export class WebrtcConn {
       announceSignalingInfo(room)
     })
     this.peer.on("data", async (data) => {
+      console.log(this, data)
       //simulate READ
-      try {
-        const valid = await Promise.resolve(room.validateUpdate(this, data))
-        console.log("valid", { valid, webrtcConn: this, data })
-        if (valid) {
-          const answer = readPeerMessage(this, data)
-          if (answer !== null) {
-            sendWebrtcConn(this, answer)
-          }
-          return
-        }
-        return console.warn("!InvalidDataFromUpdate", {
+      const valid = await validMessage(room, data)
+      console.log("valid", { valid, webrtcConn: this, data })
+      if (!valid)
+        return console.warn("!InvalidData", {
           peer: this.peer,
-          valid,
+          context: this,
+          room,
+          data,
         })
-      } catch (e) {
-        return console.warn("!ValidationFailed", {
-          peer: this.peer,
-          webrtcConn: this,
-          err: e,
-        })
+      const answer = readPeerMessage(this, data)
+      if (answer !== null) {
+        sendWebrtcConn(this, answer)
       }
+      return
     })
   }
 
