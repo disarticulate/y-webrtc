@@ -129,6 +129,7 @@ class SimplePeerExtended extends Peer {
         message = this.webRTCMessageQueue.shift()
       } catch (error) {
         console.warn({ error })
+        super.destroy()
       }
     }
   }
