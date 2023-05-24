@@ -319,10 +319,7 @@ export class WebrtcConn {
       announceSignalingInfo(room)
     })
     this.peer.on("data", async (data) => {
-      //simulate READ
-      console.log("data", room, data)
       const valid = await validMessage(room, data.slice())
-      console.log("valid", { valid, webrtcConn: this, data })
       if (!valid)
         return console.warn("!InvalidData", {
           peer: this.peer,

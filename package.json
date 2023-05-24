@@ -20,6 +20,7 @@
     "watch": "rollup -wc",
     "test": "npm run lint",
     "lint": "standard && tsc",
+    "server:docker:build": "docker build -t y-webrtc-server .",
     "preversion": "npm run clean && npm run lint && npm run dist && npm run types"
   },
   "bin": {
@@ -50,6 +51,7 @@
     ]
   },
   "dependencies": {
+    "int64-buffer": "^1.0.1",
     "lib0": "^0.2.34",
     "simple-peer": "^9.11.0",
     "y-protocols": "^1.0.5"
