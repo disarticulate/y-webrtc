@@ -51,7 +51,7 @@ const onconnection = conn => {
    * @type {Set<string>}
    */
   conn.id = crypto.randomUUID()
-  console.log(`${conn.id}:connection`)
+  console.log(`connection:${conn.id}`)
   const subscribedTopics = new Set()
   let closed = false
   // Check if connection is still alive
@@ -71,11 +71,11 @@ const onconnection = conn => {
     }
   }, pingTimeout)
   conn.on('pong', () => {
-    console.log(`${conn.id}:pong`, conn.id)
+    console.log(`pong:${conn.id}`)
     pongReceived = true
   })
   conn.on('close', () => {
-    console.log('connection:close', conn.id)
+    console.log(`close:${conn.id}`)
     subscribedTopics.forEach(topicName => {
       const subs = topics.get(topicName) || new Set()
       subs.delete(conn)
