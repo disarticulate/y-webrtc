@@ -2,13 +2,19 @@
 
 const ws = require('ws')
 const http = require('http')
-const crypto = require('crypto')
 const map = require('lib0/dist/map.cjs')
 
 const wsReadyStateConnecting = 0
 const wsReadyStateOpen = 1
 const wsReadyStateClosing = 2 // eslint-disable-line
 const wsReadyStateClosed = 3 // eslint-disable-line
+
+let connCount = BigInt(0)
+const PAD_ROOT = '0000000000000000000000'
+const getId = () => {
+  connCount++
+  return (connCount + "").padStart(PAD_ROOT.length, "0")
+}
 
 const pingTimeout = 30000
 
@@ -42,6 +48,13 @@ const send = (conn, message) => {
   }
 }
 
+const calculateDelta = (t) => {
+  const now = Date.now()
+  const dt = now - t
+  t = now
+  return dt
+}
+
 /**
  * Setup a new client
  * @param {any} conn
@@ -50,32 +63,11 @@ const onconnection = conn => {
   /**
    * @type {Set<string>}
    */
-  conn.id = crypto.randomUUID()
-  console.log(`connection:${conn.id}`)
+  let lastUpdate = Date.now()
+  conn.id = getId()
+  console.log(`== connection[t${lastUpdate.valueOf()}]:${conn.id}`)
   const subscribedTopics = new Set()
-  let closed = false
-  // Check if connection is still alive
-  let pongReceived = true
-  const pingInterval = setInterval(() => {
-    if (!pongReceived) {
-      conn.close()
-      clearInterval(pingInterval)
-    } else {
-      pongReceived = false
-      try {
-        console.log(`${conn.id}:ping`)
-        conn.ping()
-      } catch (e) {
-        conn.close()
-      }
-    }
-  }, pingTimeout)
-  conn.on('pong', () => {
-    console.log(`pong:${conn.id}`)
-    pongReceived = true
-  })
-  conn.on('close', () => {
-    console.log(`close:${conn.id}`)
+  const clearTopics = () => {
     subscribedTopics.forEach(topicName => {
       const subs = topics.get(topicName) || new Set()
       subs.delete(conn)
@@ -84,10 +76,46 @@ const onconnection = conn => {
       }
     })
     subscribedTopics.clear()
+  }
+  let closed = false
+  // Check if connection is still alive
+  let pongReceived = true
+  const pingInterval = setInterval(() => {
+    if (!pongReceived) {
+      conn.close()
+    } else {
+      pongReceived = false
+      try {
+        console.log(`== ping[Δ${calculateDelta(lastUpdate)}]:${conn.id}`)
+        conn.ping()
+      } catch (e) {
+        conn.close()
+      }
+    }
+  }, pingTimeout)
+  const onclose = () => {
+    console.log(`== close[Δ${calculateDelta(lastUpdate)}]:${conn.id}`)
+    clearInterval(pingInterval)
+    clearTopics()
+    topics.delete(conn)
     closed = true
+    conn = null
+  }
+  conn.on('error', (e) => {
+    console.log(`== error[Δ${calculateDelta(lastUpdate)}]:${conn.id}`)
+    console.warn(e)
+    onclose()
+  })
+  conn.on('close', onclose)
+  conn.on('open', () => {
+    console.log(`== open[Δ${calculateDelta(lastUpdate)}]:${conn.id}`)
+  })
+  conn.on('pong', () => {
+    console.log(`== pong[Δ${calculateDelta(lastUpdate)}]:${conn.id}`)
+    pongReceived = true
   })
   conn.on('message', /** @param {object} message */ message => {
-    console.log(`message:${conn.id}`)
+    // console.log(`==== message:${conn.id}`)
     if (typeof message === 'string') {
       message = JSON.parse(message)
     }
@@ -97,7 +125,7 @@ const onconnection = conn => {
           /** @type {Array<string>} */ (message.topics || []).forEach(topicName => {
             if (typeof topicName === 'string') {
               // add conn to topic
-              console.log(`message:${conn.id}:subscribe ${topicName}`)
+              console.log(`====+ subscribe[Δ${calculateDelta(lastUpdate)}]:${conn.id} [${topicName}]`)
               const topic = map.setIfUndefined(topics, topicName, () => new Set())
               topic.add(conn)
               // add topic to conn
@@ -107,28 +135,29 @@ const onconnection = conn => {
           break
         case 'unsubscribe':
           /** @type {Array<string>} */ (message.topics || []).forEach(topicName => {
-            console.log(`message:${conn.id}:unsubscribe ${topicName}`)
+            console.log(`====- unsubscribe[Δ${calculateDelta(lastUpdate)}]:${conn.id} [${topicName}]`)
             const subs = topics.get(topicName)
             if (subs) {
               subs.delete(conn)
             }
           })
           break
-        case 'publish':
+        case 'publish': // ====!
           if (message.topic) {
-            console.log(`message:${conn.id}:publish ${message.topic}`)
+            // console.log(`====o publish:${conn.id} > ${message.topic}`)
             const receivers = topics.get(message.topic)
             if (receivers) {
               receivers.forEach(receiver => {
-                  console.log(`message:${conn.id}:message:${receiver.id}:send ${message.topic}`)
+                if (receiver === conn) return
+                console.log(`====o from[Δ${calculateDelta(lastUpdate)}]:${conn.id} > to:${receiver.id} [${message.topic}]`)
                   send(receiver, message)
                 }
               )
             }
           }
           break
-        case 'ping':
-          console.log(`message:${conn.id}:pong`)
+        case 'ping': // ====!
+          console.log(`====! pong[Δ${calculateDelta(lastUpdate)}]:${conn.id}`)
           send(conn, { type: 'pong' })
       }
     }
