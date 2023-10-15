@@ -119,9 +119,10 @@ const onconnection = conn => {
             console.log(`message:${conn.id}:publish ${message.topic}`)
             const receivers = topics.get(message.topic)
             if (receivers) {
-              receivers.forEach(receiver =>
-                console.log(`message:${receiver.id}:send ${message.topic}`)
-                send(receiver, message)
+              receivers.forEach(receiver => {
+                  console.log(`message:${conn.id}:message:${receiver.id}:send ${message.topic}`)
+                  send(receiver, message)
+                }
               )
             }
           }
