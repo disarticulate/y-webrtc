@@ -49,6 +49,7 @@ const onconnection = conn => {
   /**
    * @type {Set<string>}
    */
+  console.log('Connection', conn)
   const subscribedTopics = new Set()
   let closed = false
   // Check if connection is still alive
