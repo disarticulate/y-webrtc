@@ -2,6 +2,7 @@
 
 const ws = require('ws')
 const http = require('http')
+const crypto = require('crypto')
 const map = require('lib0/dist/map.cjs')
 
 const wsReadyStateConnecting = 0
@@ -49,7 +50,8 @@ const onconnection = conn => {
   /**
    * @type {Set<string>}
    */
-  console.log('Connection', conn)
+  conn.id = crypto.randomUUID()
+  console.log(`${conn.id}:connection`)
   const subscribedTopics = new Set()
   let closed = false
   // Check if connection is still alive
@@ -61,6 +63,7 @@ const onconnection = conn => {
     } else {
       pongReceived = false
       try {
+        console.log(`${conn.id}:ping`)
         conn.ping()
       } catch (e) {
         conn.close()
@@ -68,9 +71,11 @@ const onconnection = conn => {
     }
   }, pingTimeout)
   conn.on('pong', () => {
+    console.log(`${conn.id}:pong`, conn.id)
     pongReceived = true
   })
   conn.on('close', () => {
+    console.log('connection:close', conn.id)
     subscribedTopics.forEach(topicName => {
       const subs = topics.get(topicName) || new Set()
       subs.delete(conn)
@@ -82,6 +87,7 @@ const onconnection = conn => {
     closed = true
   })
   conn.on('message', /** @param {object} message */ message => {
+    console.log(`message:${conn.id}`)
     if (typeof message === 'string') {
       message = JSON.parse(message)
     }
@@ -91,6 +97,7 @@ const onconnection = conn => {
           /** @type {Array<string>} */ (message.topics || []).forEach(topicName => {
             if (typeof topicName === 'string') {
               // add conn to topic
+              console.log(`message:${conn.id}:subscribe ${topicName}`)
               const topic = map.setIfUndefined(topics, topicName, () => new Set())
               topic.add(conn)
               // add topic to conn
@@ -100,6 +107,7 @@ const onconnection = conn => {
           break
         case 'unsubscribe':
           /** @type {Array<string>} */ (message.topics || []).forEach(topicName => {
+            console.log(`message:${conn.id}:unsubscribe ${topicName}`)
             const subs = topics.get(topicName)
             if (subs) {
               subs.delete(conn)
@@ -108,15 +116,18 @@ const onconnection = conn => {
           break
         case 'publish':
           if (message.topic) {
+            console.log(`message:${conn.id}:publish ${message.topic}`)
             const receivers = topics.get(message.topic)
             if (receivers) {
               receivers.forEach(receiver =>
+                console.log(`message:${receiver.id}:send ${message.topic}`)
                 send(receiver, message)
               )
             }
           }
           break
         case 'ping':
+          console.log(`message:${receiver.id}:pong`)
           send(conn, { type: 'pong' })
       }
     }
