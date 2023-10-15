@@ -128,7 +128,7 @@ const onconnection = conn => {
           }
           break
         case 'ping':
-          console.log(`message:${receiver.id}:pong`)
+          console.log(`message:${conn.id}:pong`)
           send(conn, { type: 'pong' })
       }
     }
