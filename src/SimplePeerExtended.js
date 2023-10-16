@@ -1,5 +1,5 @@
 import Peer from "simple-peer/simplepeer.min.js"
-import "int64-buffer/dist/int64-buffer.min.js"
+import { Int64BE } from 'int64-buffer'
 
 export const CHUNK_SIZE = 1024 * 16 - 512 // 16KB - data header
 export const TX_SEND_TTL = 1000 * 30 // 30 seconds
