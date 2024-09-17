@@ -58,12 +58,14 @@ const validMessage = async (room, data) => {
   const decoder = decoding.createDecoder(data)
   const messageType1 = decoding.readVarUint(decoder)
   const messageType2 = decoding.readVarUint(decoder)
+  /*
   console.warn("validMessage:decode", {
     messageType1,
     messageType2,
     messageSync,
     data,
   })
+  */
   if (
     messageType1 === messageSync &&
     (syncProtocol.messageYjsSyncStep2 === messageType2 ||
@@ -73,7 +75,7 @@ const validMessage = async (room, data) => {
       const valid = await Promise.resolve(
         room.validateUpdate(decoding.readVarUint8Array(decoder))
       )
-      console.log("validMessage", { valid, room, data })
+      //console.log("validMessage", { valid, room, data })
       return valid
     } catch (e) {
       console.warn("!InvalidDataFromUpdate", { e, room, data })
