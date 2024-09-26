@@ -5,6 +5,14 @@ export const CHUNK_SIZE = 1024 * 16 - 512 // 16KB - data header
 export const TX_SEND_TTL = 1000 * 30 // 30 seconds
 export const MAX_BUFFERED_AMOUNT = 64 * 1024 // simple peer value
 
+function wait(ms) {
+    let start = Date.now()
+    let now = start
+    while (now - start < ms) {
+      now = Date.now()
+    }
+}
+
 function concatenate(Constructor, arrays) {
   let totalLength = 0
   for (let arr of arrays) totalLength += arr.length
@@ -129,8 +137,12 @@ class SimplePeerExtended extends Peer {
         message = this.webRTCMessageQueue.shift()
       } catch (error) {
         console.warn({ error })
-        super.destroy()
+        if (error.code === 11) {// Failed to execute 'send' on 'RTCDataChannel': RTCDataChannel.readyState is not 'open'
+          //TODO: block sending until connected
+        }
+        // super.destroy()
       }
+
     }
   }
 }
