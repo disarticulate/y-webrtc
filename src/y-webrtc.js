@@ -65,9 +65,19 @@ const validMessage = async (room, data) => {
     messageSync,
     data,
   })*/
-  const isMessage = messageType1 === messageSync &&
+  /*
+  const messageSync = 0
+  const messageQueryAwareness = 3
+  const messageAwareness = 1
+  const messageBcPeerId = 4
+  */
+  const isSync = messageType1 === messageSync &&
     (syncProtocol.messageYjsSyncStep2 === messageType2 ||
     syncProtocol.messageYjsUpdate === messageType2)
+  const isAwareness = messageType1 === messageAwareness
+    || messageType1 === messageQueryAwareness
+  const isBc = messageType1 === messageBcPeerId
+  const isMessage = isSync || isAwareness || isBc
   let valid = false
   try {
     valid = await room.validateUpdate(
