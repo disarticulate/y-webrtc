@@ -140,7 +140,7 @@ class SimplePeerExtended extends Peer {
         if (error.code === 11) {// Failed to execute 'send' on 'RTCDataChannel': RTCDataChannel.readyState is not 'open'
           //TODO: block sending until connected
         }
-        // super.destroy()
+        super.destroy()
       }
 
     }
