@@ -337,7 +337,7 @@ export class WebrtcConn {
       announceSignalingInfo(room)
     })
     this.peer.on('error', (err) => {
-      console.log('y-webrtc:error', this)
+      console.log('y-webrtc:error', this, { err })
       log('Error in connection to ', logging.BOLD, remotePeerId, ': ', err)
       announceSignalingInfo(room)
     })
