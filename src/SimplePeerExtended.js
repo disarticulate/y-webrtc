@@ -136,11 +136,15 @@ class SimplePeerExtended extends Peer {
         super.send(message)
         message = this.webRTCMessageQueue.shift()
       } catch (error) {
-        console.warn({ error })
+        console.warn('y-webrtc:simplepeer:sendMessageQueued', { error })
         if (error.code === 11) {// Failed to execute 'send' on 'RTCDataChannel': RTCDataChannel.readyState is not 'open'
           //TODO: block sending until connected
         }
-        super.destroy()
+        break
+        //super.destroy()
+      }
+      if (this.webRTCMessageQueue.length) {
+        setTimeout(this.sendMessageQueued, 200)
       }
 
     }

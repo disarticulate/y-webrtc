@@ -51,9 +51,9 @@
   },
   "dependencies": {
     "int64-buffer": "^1.0.1",
-    "lib0": "^0.2.34",
+    "lib0": "^0.2.42",
     "simple-peer": "^9.11.0",
-    "y-protocols": "^1.0.5"
+    "y-protocols": "^1.0.6"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^11.1.0",
@@ -66,10 +66,10 @@
     "rollup-plugin-terser": "^5.3.1",
     "standard": "^14.3.4",
     "typescript": "^3.9.7",
-    "yjs": "^13.5.45"
+    "yjs": "^13.6.18"
   },
   "peerDependenies": {
-    "yjs": "^13.5.45"
+    "yjs": "^13.6.18"
   },
   "optionalDependencies": {
     "ws": "^7.2.0"
